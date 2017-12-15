@@ -19,15 +19,15 @@ public class Group : MonoBehaviour {
     {
         foreach (Transform child in transform)
         {
-            Vector2 v = Grid.roundVec2(child.position);
+            Vector3 v = Grid.roundVec3(child.position);
 
             // Not inside Border?
             if (!Grid.insideBorder(v))
                 return false;
 
             // Block in grid cell (and not part of same group)?
-            if (Grid.grid[(int)v.x, (int)v.y] != null &&
-                Grid.grid[(int)v.x, (int)v.y].parent != transform)
+            if (Grid.grid[(int)v.x, (int)v.y, (int)v.z] != null &&
+                Grid.grid[(int)v.x, (int)v.y, (int)v.z].parent != transform)
                 return false;
         }
         return true;
@@ -38,15 +38,17 @@ public class Group : MonoBehaviour {
         // Remove old children from grid
         for (int y = 0; y < Grid.h; ++y)
             for (int x = 0; x < Grid.w; ++x)
-                if (Grid.grid[x, y] != null)
-                    if (Grid.grid[x, y].parent == transform)
-                        Grid.grid[x, y] = null;
+                for(int z=0; z < Grid.d; ++z)
+
+                if (Grid.grid[x, y, z] != null)
+                    if (Grid.grid[x, y, z].parent == transform)
+                        Grid.grid[x, y, z] = null;
 
         // Add new children to grid
         foreach (Transform child in transform)
         {
-            Vector2 v = Grid.roundVec2(child.position);
-            Grid.grid[(int)v.x, (int)v.y] = child;
+            Vector3 v = Grid.roundVec3(child.position);
+            Grid.grid[(int)v.x, (int)v.y, (int)v.z] = child;
         }
     }
 
@@ -81,7 +83,36 @@ public class Group : MonoBehaviour {
                 // It's not valid. revert.
                 transform.position += new Vector3(-1, 0, 0);
         }
+
+        else if(Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            // Modify position
+            transform.position += new Vector3(0, 0, 1);
+
+            // See if valid
+            if (isValidGridPos())
+                // It's valid. Update grid.
+                updateGrid();
+            else
+                // It's not valid. revert.
+                transform.position += new Vector3(0, 0, -1);
+        }
         
+        else if(Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            // Modify position
+            transform.position += new Vector3(0, 0, -1);
+
+            // See if valid
+            if (isValidGridPos())
+                // It's valid. Update grid.
+                updateGrid();
+            else
+                // It's not valid. revert.
+                transform.position += new Vector3(0, 0, 1);
+        }
+
+
         //Hold 
         else if (Input.GetKeyDown(KeyCode.H) && Hold_Flag.second_ban == false)
         {
@@ -89,7 +120,7 @@ public class Group : MonoBehaviour {
         }
 
         // Rotate
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        else if (Input.GetKeyDown(KeyCode.RightShift))
         {
             transform.Rotate(0, 0, -90);
 
@@ -128,8 +159,49 @@ public class Group : MonoBehaviour {
                 }
             }
         }
+
+        else if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            transform.Rotate(90, 0, 0);
+
+            // See if valid
+            if (isValidGridPos())
+                updateGrid();
+            else
+            {
+                transform.position += new Vector3(-1, 0, 0);
+                if (isValidGridPos())
+                    updateGrid();
+                else
+                {
+                    transform.position += new Vector3(-1, 0, 0);
+                    if (isValidGridPos())
+                        updateGrid();
+                    else
+                    {
+
+                        transform.position += new Vector3(3, 0, 0);
+                        if (isValidGridPos())
+                            updateGrid();
+                        else
+                        {
+                            transform.position += new Vector3(1, 0, 0);
+                            if (isValidGridPos())
+                                updateGrid();
+                            else
+                            {
+                                // It's not valid. revert.
+                                transform.Rotate(-90, 0, 0);
+                                transform.position += new Vector3(-2, 0, 0);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Move Downwards and Fall
-        else if ((Input.GetKey(KeyCode.DownArrow) && Time.time - lastFall >= 0.1) ||
+        else if (//(Input.GetKey(KeyCode.DownArrow) && Time.time - lastFall >= 0.1) ||
                  Time.time - lastFall >= fallTime)
         {
             // Modify position

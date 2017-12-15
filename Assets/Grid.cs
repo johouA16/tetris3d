@@ -6,18 +6,20 @@ public class Grid : MonoBehaviour {
     // The Grid itself
     public static int w = 10;
     public static int h = 20;
-    public static Transform[,] grid = new Transform[w, h];
+    public static int d = 10;
+    public static Transform[, ,] grid = new Transform[w, h, d];
 
-    public static Vector2 roundVec2(Vector2 v)
+    public static Vector3 roundVec3(Vector3 v)
     {
-        return new Vector2(Mathf.Round(v.x),
-                           Mathf.Round(v.y));
+        return new Vector3(Mathf.Round(v.x),
+                           Mathf.Round(v.y),
+                           Mathf.Round(v.z));
     }
 
-    public static bool insideBorder(Vector2 pos)
+    public static bool insideBorder(Vector3 pos)
     {
-        return ((int)pos.x >= 0 &&
-                (int)pos.x < w &&
+        return ((int)pos.x >= 0 && (int)pos.x < w &&
+                (int)pos.z >= 0 && (int)pos.z < d &&
                 (int)pos.y >= 0);
     }
 
@@ -25,23 +27,30 @@ public class Grid : MonoBehaviour {
     {
         for (int x = 0; x < w; ++x)
         {
-            Destroy(grid[x, y].gameObject);
-            grid[x, y] = null;
+            for (int z = 0; z < d; ++z)
+            {
+                Destroy(grid[x, y, z].gameObject);
+                grid[x, y, z] = null;
+            }
+
         }
     }
 
     public static void decreaseRow(int y)
     {
         for (int x = 0; x < w; ++x)
-        {
-            if (grid[x, y] != null)
+        { 
+            for(int z =0; z < d; ++z)
             {
-                // Move one towards bottom
-                grid[x, y - 1] = grid[x, y];
-                grid[x, y] = null;
+                if (grid[x, y, z] != null)
+                {
+                    // Move one towards bottom
+                    grid[x, y - 1, z] = grid[x, y, z];
+                    grid[x, y, z] = null;
 
-                // Update Block position
-                grid[x, y - 1].position += new Vector3(0, -1, 0);
+                    // Update Block position
+                    grid[x, y - 1, z].position += new Vector3(0, -1, 0);
+                }
             }
         }
     }
@@ -55,9 +64,10 @@ public class Grid : MonoBehaviour {
     public static bool isRowFull(int y)
     {
         for (int x = 0; x < w; ++x)
-            if (grid[x, y] == null)
-                return false;
-        return true;
+            for (int z = 0; z < d; ++z)
+                if (grid[x, y, z] == null)
+                    return false;
+                return true;            
     }
 
     public static void deleteFullRows()

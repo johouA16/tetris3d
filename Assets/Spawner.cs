@@ -33,7 +33,7 @@ public class Spawner : MonoBehaviour {
     void moveObject(GameObject fallObject)
     {
         GroupChecker.Current_Group = GroupChecker.Next_Group;
-        fallObject.transform.position = new Vector3(4, 14, 1);
+        fallObject.transform.position = new Vector3(4, 14, 0);
     }
 
     GameObject createMino()
